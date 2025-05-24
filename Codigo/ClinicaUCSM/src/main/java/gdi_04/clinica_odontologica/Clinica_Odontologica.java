@@ -1,7 +1,6 @@
 package gdi_04.clinica_odontologica;
 
 import com.formdev.flatlaf.intellijthemes.FlatDarkFlatIJTheme;
-import javax.swing.UIManager;
 import gdi_04.clinica_odontologica.pages.Dashboard;
 
 public class Clinica_Odontologica {

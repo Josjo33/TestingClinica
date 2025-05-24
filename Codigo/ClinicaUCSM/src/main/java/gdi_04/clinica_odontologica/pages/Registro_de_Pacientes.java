@@ -2,11 +2,82 @@ package gdi_04.clinica_odontologica.pages;
 
 import com.mycompany.clinicaapp.ClinicaApp;
 import com.mycompany.models.paciente;
+import javax.swing.text.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 public class Registro_de_Pacientes extends javax.swing.JPanel {
 
     private void InitStyles() {
+        // Configurar validaciones para campos numéricos
+        configurarCampoNumerico(TelefonoLabelInput, 9); // Teléfono: máximo 9 dígitos
+        configurarCampoNumerico(DocIdLabelInput, 8);    // Doc Identidad: máximo 8 dígitos
         
+        // Configurar validaciones para campos de texto
+        configurarCampoTexto(NombresInput);
+        configurarCampoTexto(APaternoInput);
+        configurarCampoTexto(AMaternoInput);
+    }
+    
+    // Método para configurar campos que solo aceptan números
+    private void configurarCampoNumerico(javax.swing.JTextField campo, int maxLength) {
+        // Crear DocumentFilter para números
+        ((AbstractDocument) campo.getDocument()).setDocumentFilter(new DocumentFilter() {
+            @Override
+            public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+                if (string != null && isValidNumeric(fb.getDocument(), string, offset, maxLength)) {
+                    super.insertString(fb, offset, string, attr);
+                }
+            }
+            
+            @Override
+            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+                if (text != null && isValidNumeric(fb.getDocument(), text, offset, maxLength)) {
+                    super.replace(fb, offset, length, text, attrs);
+                }
+            }
+            
+            private boolean isValidNumeric(Document doc, String text, int offset, int maxLen) {
+                // Verificar que solo contenga números
+                if (!text.matches("\\d*")) {
+                    return false;
+                }
+                
+                // Verificar longitud total
+                try {
+                    int currentLength = doc.getLength();
+                    int newLength = currentLength + text.length();
+                    return newLength <= maxLen;
+                } catch (Exception e) {
+                    return false;
+                }
+            }
+        });
+    }
+
+    // Método para configurar campos que solo aceptan texto (letras y espacios)
+    private void configurarCampoTexto(javax.swing.JTextField campo) {
+        campo.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                
+                // Permitir solo letras, espacios y teclas de control
+                if (!Character.isLetter(c) && c != ' ' && !Character.isISOControl(c)) {
+                    e.consume(); // Bloquear el carácter
+                }
+            }
+        });
+    }
+
+    // Método auxiliar para limpiar los campos
+    private void limpiarCampos() {
+        DocIdLabelInput.setText("");
+        NombresInput.setText("");
+        APaternoInput.setText("");
+        AMaternoInput.setText("");
+        EmailInput.setText("");
+        TelefonoLabelInput.setText("");
     }
     
     public Registro_de_Pacientes() {
@@ -14,8 +85,7 @@ public class Registro_de_Pacientes extends javax.swing.JPanel {
         InitStyles();
     }
     
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -244,21 +314,41 @@ public class Registro_de_Pacientes extends javax.swing.JPanel {
         paciente paciente = new paciente();
         
         try {
-            paciente.setDocid(Integer.parseInt(DocIdLabelInput.getText()));
-            paciente.setName(NombresInput.getText());
-            paciente.setApaterno(APaternoInput.getText());
-            paciente.setAmaterno(AMaternoInput.getText());
-            paciente.setEmail(EmailInput.getText());
-            
-            if (paciente.getName().isEmpty() || paciente.getApaterno().isEmpty() || 
-                paciente.getAmaterno().isEmpty() || paciente.getEmail().isEmpty()) {
+            // Validar que los campos requeridos no estén vacíos
+            if (DocIdLabelInput.getText().trim().isEmpty() || 
+                NombresInput.getText().trim().isEmpty() || 
+                APaternoInput.getText().trim().isEmpty() || 
+                AMaternoInput.getText().trim().isEmpty() || 
+                EmailInput.getText().trim().isEmpty() ||
+                TelefonoLabelInput.getText().trim().isEmpty()) {
                 throw new IllegalArgumentException("Todos los campos son obligatorios.");
             }
+            
+            // Validar longitudes mínimas
+            if (DocIdLabelInput.getText().trim().length() < 8) {
+                throw new IllegalArgumentException("El documento de identidad debe tener exactamente 8 dígitos.");
+            }
+            
+            if (TelefonoLabelInput.getText().trim().length() < 9) {
+                throw new IllegalArgumentException("El teléfono debe tener exactamente 9 dígitos.");
+            }
+            
+            // Asignar valores al objeto paciente
+            paciente.setDocid(Integer.parseInt(DocIdLabelInput.getText().trim()));
+            paciente.setName(NombresInput.getText().trim());
+            paciente.setApaterno(APaternoInput.getText().trim());
+            paciente.setAmaterno(AMaternoInput.getText().trim());
+            paciente.setEmail(EmailInput.getText().trim());
+            // Si tienes un método setTelefono en tu clase paciente, descomenta la siguiente línea:
+            // paciente.setTelefono(TelefonoLabelInput.getText().trim());
 
             ClinicaApp dao = new ClinicaApp();
             dao.registrarPaciente(paciente);
 
             javax.swing.JOptionPane.showMessageDialog(this, "Paciente registrado exitosamente.");
+            
+            // Limpiar campos después del registro exitoso
+            limpiarCampos();
 
         } catch (NumberFormatException e) {
             javax.swing.JOptionPane.showMessageDialog(this, "El DocID debe ser un número válido.", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
@@ -270,7 +360,8 @@ public class Registro_de_Pacientes extends javax.swing.JPanel {
     }//GEN-LAST:event_GuardarButtonActionPerformed
 
     private void CancelarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CancelarButtonActionPerformed
-        // TODO add your handling code here:
+        // Limpiar todos los campos
+        limpiarCampos();
     }//GEN-LAST:event_CancelarButtonActionPerformed
 
     private void AMaternoInputActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AMaternoInputActionPerformed

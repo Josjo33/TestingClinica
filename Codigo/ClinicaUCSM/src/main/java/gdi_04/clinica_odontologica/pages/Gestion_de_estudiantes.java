@@ -1,25 +1,58 @@
 package gdi_04.clinica_odontologica.pages;
-
 import com.mycompany.clinicaapp.ClinicaApp;
 import com.mycompany.models.eodonto;
-import javax.swing.JOptionPane;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 
 public class Gestion_de_estudiantes extends javax.swing.JPanel {
 
-    private void InitStyles() {
+    // Filtro para campos numéricos con límite de longitud
+    private class NumericDocumentFilter extends DocumentFilter {
+        private int maxLength;
         
+        public NumericDocumentFilter(int maxLength) {
+            this.maxLength = maxLength;
+        }
+        
+        @Override
+        public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+            if (isValidInput(fb.getDocument().getLength(), string.length(), string)) {
+                super.insertString(fb, offset, string, attr);
+            }
+        }
+        
+        @Override
+        public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+            if (isValidInput(fb.getDocument().getLength() - length, text.length(), text)) {
+                super.replace(fb, offset, length, text, attrs);
+            }
+        }
+        
+        private boolean isValidInput(int currentLength, int newLength, String text) {
+            if (currentLength + newLength > maxLength) {
+                return false;
+            }
+            return text.matches("\\d*"); // Solo números
+        }
+    }
+
+    private void InitStyles() {
+        // Aplicar filtro al campo de código (10 dígitos)
+        ((AbstractDocument) CodigoInsert.getDocument()).setDocumentFilter(new NumericDocumentFilter(10));
+        ((AbstractDocument) UpdateCodigo.getDocument()).setDocumentFilter(new NumericDocumentFilter(10));
+        ((AbstractDocument) EliminarCodigo.getDocument()).setDocumentFilter(new NumericDocumentFilter(10));
+        
+        // Aplicar filtro al campo de teléfono (9 dígitos)
+        ((AbstractDocument) NumeroInsert.getDocument()).setDocumentFilter(new NumericDocumentFilter(9));
     }
     
     public Gestion_de_estudiantes() {
         initComponents();
         InitStyles();
-    }
-    private void CrearButtonActionPerformed(java.awt.event.ActionEvent evt) {                                              
+    }                                      
 
-    }                                              
-
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -111,7 +144,7 @@ public class Gestion_de_estudiantes extends javax.swing.JPanel {
             }
         });
 
-        CodigoLabel.setText("Codigo estudiante");
+        CodigoLabel.setText("Código estudiante");
 
         EmailInsert.setPreferredSize(new java.awt.Dimension(325, 35));
         EmailInsert.addActionListener(new java.awt.event.ActionListener() {
